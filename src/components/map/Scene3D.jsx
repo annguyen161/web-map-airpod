@@ -5,7 +5,7 @@ import * as THREE from "three";
 import Model3D from "./Model3D";
 import AreaInfo from "../areas/AreaInfo";
 
-export default function Scene3D() {
+export default function Scene3D({ selectedFloor, isTransitioning }) {
   const [selectedArea, setSelectedArea] = useState(null);
   const [areaData, setAreaData] = useState(null);
   const controlsRef = useRef();
@@ -174,6 +174,8 @@ export default function Scene3D() {
           ref={modelRef}
           onAreaClick={handleAreaClick}
           selectedArea={selectedArea}
+          selectedFloor={selectedFloor}
+          isTransitioning={isTransitioning}
         />
 
         {/* Điều khiển camera */}

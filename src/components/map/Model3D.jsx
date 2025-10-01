@@ -164,15 +164,25 @@ const Model = forwardRef(function Model(
 });
 
 const Model3D = forwardRef(function Model3D(
-  { onAreaClick, selectedArea },
+  { onAreaClick, selectedArea, selectedFloor, isTransitioning },
   ref
 ) {
+  // Xác định URL model dựa trên tầng được chọn
+  const getModelUrl = () => {
+    if (selectedFloor?.modelUrl) {
+      return selectedFloor.modelUrl;
+    }
+    // Fallback về tầng 3 nếu không có tầng được chọn
+    return "/models/Tang3/tang3T3GLB.glb";
+  };
+
   return (
     <Model
       ref={ref}
-      url="/models/tang3T3GLB.glb"
+      url={getModelUrl()}
       onAreaClick={onAreaClick}
       selectedArea={selectedArea}
+      isTransitioning={isTransitioning}
     />
   );
 });
