@@ -73,12 +73,16 @@ const FloorSelector = ({
         sx={{
           position: "fixed",
           bottom: isMobile ? "auto" : "auto",
-          top: isMobile ? 140 : 80, // Position below search bar on mobile
+          top: isMobile ? 160 : 100, // Tăng giá trị để di chuyển xuống dưới
           right: isMobile ? 16 : 16,
           zIndex: 1100,
           bgcolor: "white",
           color: "#999",
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          // Thêm !important để đảm bảo style được áp dụng
+          "&.MuiFab-root": {
+            top: isMobile ? "160px !important" : "100px !important",
+          },
         }}
       >
         <LayersIcon />
@@ -96,7 +100,7 @@ const FloorSelector = ({
         sx={{
           position: "fixed",
           bottom: isMobile ? "auto" : "auto",
-          top: isMobile ? 140 : 80, // Position below search bar on mobile
+          top: isMobile ? 160 : 100, // Tăng giá trị để di chuyển xuống dưới
           right: isMobile ? 16 : 16,
           zIndex: 1100,
           bgcolor: isTransitioning ? "#f3f4f6" : "white",
@@ -109,6 +113,10 @@ const FloorSelector = ({
             transform: isTransitioning ? "none" : "scale(1.05)",
           },
           transition: "all 0.3s ease-in-out",
+          // Thêm !important để đảm bảo style được áp dụng
+          "&.MuiFab-root": {
+            top: isMobile ? "160px !important" : "100px !important",
+          },
           // Add pulse animation during transition
           animation: isTransitioning
             ? "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
