@@ -9,6 +9,8 @@ import {
   useMediaQuery,
   Fade,
   Divider,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 import {
   Close as CloseIcon,
@@ -21,6 +23,8 @@ import SwipeableBottomSheet from "../search/SwipeableBottomSheet";
 export default function AreaInfo({
   selectedArea,
   areaData,
+  isLoading = false,
+  error = null,
   onClose,
   onFocus,
   onDirections,
@@ -89,50 +93,16 @@ export default function AreaInfo({
       "Khu vực được chọn trong bản đồ 3D. Đây là mô tả chi tiết về khu vực này và các tiện ích có sẵn.",
     type: "Khu vực",
     status: "Hoạt động",
-    capacity: "100 người",
-    facilities: ["WiFi", "Điều hòa", "Thiết bị âm thanh"],
-    coordinates: "X: 0, Y: 0, Z: 0",
     image_url: null,
     hours: "Mở cửa hàng ngày từ 6:00 - 22:00",
-    priority: 2, // 1=Critical, 2=High, 3=Medium, 4=Low, 5=Minimal
+    categories: ["Dịch vụ", "Y tế"], // Thay thế priority bằng categories
   };
 
   const currentAreaData = areaData || defaultAreaData;
 
-  // Priority level mapping for display
-  const getPriorityLabel = (priority) => {
-    switch (priority) {
-      case 1:
-        return "Quan trọng";
-      case 2:
-        return "Cao";
-      case 3:
-        return "Trung bình";
-      case 4:
-        return "Thấp";
-      case 5:
-        return "Tối thiểu";
-      default:
-        return "Tiêu chuẩn";
-    }
-  };
-
-  // Priority color for visual distinction
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 1:
-        return "#dc2626"; // Red for critical
-      case 2:
-        return "#f59e0b"; // Amber for high
-      case 3:
-        return "#3b82f6"; // Blue for medium
-      case 4:
-        return "#6b7280"; // Gray for low
-      case 5:
-        return "#9ca3af"; // Light gray for minimal
-      default:
-        return "#6b7280";
-    }
+  // Category color - all categories use the same color
+  const getCategoryColor = (category) => {
+    return "#6b7280"; // Gray for all categories
   };
 
   // Mobile bottom sheet version
@@ -155,25 +125,26 @@ export default function AreaInfo({
             pb: 2,
           }}
         >
-          {/* Logo/Badge */}
-          <Box
-            sx={{
-              px: 1.5,
-              py: 0.5,
-              borderRadius: 1,
-              fontSize: "10px",
-              fontWeight: 700,
-              color: "white",
-              bgcolor: getPriorityColor(currentAreaData.priority),
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-            }}
-          >
-            {currentAreaData.name
-              .split(" ")
-              .slice(0, 2)
-              .join(" ")
-              .toUpperCase()}
+          {/* Categories Tags */}
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {currentAreaData.categories?.map((category, index) => (
+              <Box
+                key={index}
+                sx={{
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 1,
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "white",
+                  bgcolor: getCategoryColor(category),
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {category}
+              </Box>
+            ))}
           </Box>
 
           {/* Action buttons */}
@@ -275,6 +246,22 @@ export default function AreaInfo({
             scrollbarColor: "#cbd5e1 #f1f5f9",
           }}
         >
+          {/* Loading State */}
+          {isLoading && (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress size={24} />
+              <Typography sx={{ ml: 2, color: "#6b7280" }}>
+                Đang tải thông tin...
+              </Typography>
+            </Box>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
           {/* Description */}
           {currentAreaData.description && (
             <Box sx={{ mb: 3 }}>
@@ -351,38 +338,6 @@ export default function AreaInfo({
             </Box>
           )}
 
-          {/* Facilities */}
-          <Box sx={{ mb: 2 }}>
-            <Typography
-              variant="body2"
-              sx={{
-                color: "#1f2937",
-                fontSize: "14px",
-                fontWeight: 600,
-                mb: 1,
-              }}
-            >
-              Tiện ích
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {currentAreaData.facilities.map((facility, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    bgcolor: "#f3f4f6",
-                    color: "#374151",
-                    fontSize: "12px",
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 1,
-                  }}
-                >
-                  {facility}
-                </Box>
-              ))}
-            </Box>
-          </Box>
-
           {/* Hours section */}
           <Box sx={{ mt: 2 }}>
             <Typography
@@ -404,30 +359,6 @@ export default function AreaInfo({
               }}
             >
               {currentAreaData.hours}
-            </Typography>
-          </Box>
-
-          {/* Capacity */}
-          <Box sx={{ mt: 2 }}>
-            <Typography
-              variant="body2"
-              sx={{
-                color: "#1f2937",
-                fontSize: "14px",
-                fontWeight: 600,
-                mb: 1,
-              }}
-            >
-              Sức chứa
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: "#6b7280",
-                fontSize: "14px",
-              }}
-            >
-              {currentAreaData.capacity}
             </Typography>
           </Box>
         </Box>
@@ -609,23 +540,50 @@ export default function AreaInfo({
               scrollbarColor: "#cbd5e1 #f1f5f9",
             }}
           >
-            {/* Priority and Type */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-              <Box
-                sx={{
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: 1,
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  color: "white",
-                  bgcolor: getPriorityColor(currentAreaData.priority),
-                  transform: isTransitioning ? "scale(0.95)" : "scale(1)",
-                  transition: "transform 0.3s ease",
-                }}
-              >
-                {getPriorityLabel(currentAreaData.priority)}
+            {/* Loading State */}
+            {isLoading && (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress size={24} />
+                <Typography sx={{ ml: 2, color: "#6b7280" }}>
+                  Đang tải thông tin...
+                </Typography>
               </Box>
+            )}
+
+            {/* Error State */}
+            {error && !isLoading && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {/* Categories and Type */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mb: 2,
+                flexWrap: "wrap",
+              }}
+            >
+              {currentAreaData.categories?.map((category, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 1,
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: "white",
+                    bgcolor: getCategoryColor(category),
+                    transform: isTransitioning ? "scale(0.95)" : "scale(1)",
+                    transition: "transform 0.3s ease",
+                  }}
+                >
+                  {category}
+                </Box>
+              ))}
               <Typography
                 variant="body2"
                 sx={{
@@ -714,38 +672,6 @@ export default function AreaInfo({
               </Box>
             )}
 
-            {/* Facilities */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "#1f2937",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  mb: 1,
-                }}
-              >
-                Tiện ích
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {currentAreaData.facilities.map((facility, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      bgcolor: "#f3f4f6",
-                      color: "#374151",
-                      fontSize: "12px",
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 1,
-                    }}
-                  >
-                    {facility}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
             {/* Hours */}
             <Box sx={{ mb: 2 }}>
               <Typography
@@ -767,30 +693,6 @@ export default function AreaInfo({
                 }}
               >
                 {currentAreaData.hours}
-              </Typography>
-            </Box>
-
-            {/* Capacity */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "#1f2937",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  mb: 1,
-                }}
-              >
-                Sức chứa
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "#6b7280",
-                  fontSize: "14px",
-                }}
-              >
-                {currentAreaData.capacity}
               </Typography>
             </Box>
           </Box>

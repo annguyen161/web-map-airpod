@@ -54,19 +54,7 @@ function App() {
 
   const handleAreaSelect = (area) => {
     setSelectedArea(area);
-    // Mock area data - replace with your actual data fetching
-    setAreaData({
-      name: area.name,
-      description: area.description,
-      type: area.properties?.Layer || "Khu vực",
-      status: "Hoạt động",
-      capacity: "100 người",
-      facilities: ["WiFi", "Điều hòa", "Thiết bị âm thanh"],
-      coordinates: "X: 0, Y: 0, Z: 0",
-      image_url: null,
-      hours: "Mở cửa hàng ngày từ 6:00 - 22:00",
-      priority: 2,
-    });
+    setAreaData(null); // Reset areaData, Scene3D sẽ set lại
   };
 
   const handleCategorySelect = (categoryKey) => {
@@ -123,6 +111,8 @@ function App() {
           <Scene3D
             selectedFloor={selectedFloor}
             isTransitioning={isTransitioning}
+            selectedArea={selectedArea}
+            onAreaSelect={handleAreaSelect}
           />
           <SearchBar
             onAreaSelect={handleAreaSelect}
@@ -135,13 +125,6 @@ function App() {
             onFloorChange={handleFloorChange}
             loading={false}
             isTransitioning={isTransitioning}
-          />
-          <AreaInfo
-            selectedArea={selectedArea}
-            areaData={areaData}
-            onClose={handleCloseAreaInfo}
-            onFocus={handleFocus}
-            onDirections={handleDirections}
           />
         </main>
       </div>

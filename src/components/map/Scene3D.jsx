@@ -1,36 +1,112 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import * as THREE from "three";
 import Model3D from "./Model3D";
 import AreaInfo from "../areas/AreaInfo";
+import { getPoiByIdName, handleApiError } from "../../api/poiApi";
 
-export default function Scene3D({ selectedFloor, isTransitioning }) {
+export default function Scene3D({
+  selectedFloor,
+  isTransitioning,
+  selectedArea: propSelectedArea,
+  onAreaSelect,
+}) {
   const [selectedArea, setSelectedArea] = useState(null);
   const [areaData, setAreaData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const controlsRef = useRef();
   const modelRef = useRef();
 
-  const handleAreaClick = (areaName, object) => {
+  // Xử lý khi propSelectedArea thay đổi từ App component
+  useEffect(() => {
+    if (propSelectedArea && propSelectedArea !== selectedArea) {
+      // Tìm object trong scene để lấy thông tin
+      if (modelRef.current) {
+        let foundObject = null;
+        modelRef.current.traverse((child) => {
+          if (child.isMesh && child.name === propSelectedArea) {
+            foundObject = child;
+          }
+        });
+
+        if (foundObject) {
+          handleAreaClick(propSelectedArea, foundObject);
+        } else {
+          console.warn("Could not find object with name:", propSelectedArea);
+        }
+      }
+    }
+  }, [propSelectedArea]);
+
+  const handleAreaClick = async (areaName, object) => {
     console.log("Clicked area:", areaName, object);
 
-    // Tạo dữ liệu mẫu cho khu vực
-    const mockAreaData = {
-      name: areaName,
-      description: `Đây là khu vực ${areaName} trong bản đồ 3D. Khu vực này có thể được sử dụng cho các hoạt động khác nhau.`,
-      type: "Khu vực chức năng",
-      status: "Hoạt động",
-      capacity: Math.floor(Math.random() * 200) + 50 + " người",
-      facilities: ["WiFi", "Điều hòa", "Thiết bị âm thanh", "Màn hình"],
-      coordinates: `X: ${object.position.x.toFixed(
-        2
-      )}, Y: ${object.position.y.toFixed(2)}, Z: ${object.position.z.toFixed(
-        2
-      )}`,
-    };
-
+    setIsLoading(true);
+    setError(null);
     setSelectedArea(areaName);
-    setAreaData(mockAreaData);
+
+    try {
+      // Gọi API để lấy thông tin POI theo id_name
+      const poiData = await getPoiByIdName(areaName);
+
+      if (poiData && poiData.data) {
+        const poi = poiData.data;
+
+        // Chuyển đổi dữ liệu từ API thành format phù hợp với component
+        const areaData = {
+          name: poi.name,
+          description:
+            poi.description || `Đây là khu vực ${poi.name} trong bản đồ 3D.`,
+          type: poi.category || "Khu vực chức năng",
+          status: "Hoạt động", // Có thể thêm trường status vào model nếu cần
+          capacity: "100 người", // Có thể thêm trường capacity vào model nếu cần
+          facilities: ["WiFi", "Điều hòa", "Thiết bị âm thanh"], // Có thể thêm trường facilities vào model nếu cần
+          coordinates: `X: ${object.position.x.toFixed(
+            2
+          )}, Y: ${object.position.y.toFixed(
+            2
+          )}, Z: ${object.position.z.toFixed(2)}`,
+          image_url: poi.image_url,
+          hours: poi.opening_hours || "Mở cửa hàng ngày từ 6:00 - 22:00",
+          priority: 2, // Có thể thêm trường priority vào model nếu cần
+          floor: poi.floorId?.name || "Tầng không xác định",
+        };
+
+        setAreaData(areaData);
+        console.log("POI data loaded:", areaData);
+      } else {
+        throw new Error("Không tìm thấy dữ liệu POI");
+      }
+    } catch (error) {
+      console.error("Error loading POI data:", error);
+      const errorInfo = handleApiError(error);
+      setError(errorInfo.message);
+
+      // Fallback: sử dụng dữ liệu mẫu nếu API lỗi
+      const fallbackData = {
+        name: areaName,
+        description: `Đây là khu vực ${areaName} trong bản đồ 3D. Khu vực này có thể được sử dụng cho các hoạt động khác nhau.`,
+        type: "Khu vực chức năng",
+        status: "Hoạt động",
+        capacity: Math.floor(Math.random() * 200) + 50 + " người",
+        facilities: ["WiFi", "Điều hòa", "Thiết bị âm thanh", "Màn hình"],
+        coordinates: `X: ${object.position.x.toFixed(
+          2
+        )}, Y: ${object.position.y.toFixed(2)}, Z: ${object.position.z.toFixed(
+          2
+        )}`,
+        image_url: null,
+        hours: "Mở cửa hàng ngày từ 6:00 - 22:00",
+        priority: 2,
+        floor: "Tầng không xác định",
+      };
+
+      setAreaData(fallbackData);
+    } finally {
+      setIsLoading(false);
+    }
 
     // Tự động focus vào khu vực được chọn
     focusOnArea(areaName, object);
@@ -39,6 +115,8 @@ export default function Scene3D({ selectedFloor, isTransitioning }) {
   const handleCloseAreaInfo = () => {
     setSelectedArea(null);
     setAreaData(null);
+    setError(null);
+    setIsLoading(false);
   };
 
   const focusOnArea = (areaName, object) => {
@@ -211,6 +289,8 @@ export default function Scene3D({ selectedFloor, isTransitioning }) {
       <AreaInfo
         selectedArea={selectedArea}
         areaData={areaData}
+        isLoading={isLoading}
+        error={error}
         onClose={handleCloseAreaInfo}
         onFocus={(areaName) => {
           // Tìm object trong scene để focus

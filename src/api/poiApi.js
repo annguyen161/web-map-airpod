@@ -22,33 +22,13 @@ export const searchPois = async (searchParams) => {
   }
 };
 
-// Lấy POI theo ID
-export const getPoiById = async (id) => {
+// Lấy POI theo ID Name (endpoint mới)
+export const getPoiByIdName = async (idName) => {
   try {
-    const response = await apiClient.get(`/pois/${id}`);
+    const response = await apiClient.get(`/pois/id-name/${idName}`);
     return response.data;
   } catch (error) {
-    throw new Error(`Lỗi khi lấy POI theo ID: ${error.message}`);
-  }
-};
-
-// Lấy POI theo UUID
-export const getPoiByUuid = async (uuid) => {
-  try {
-    const response = await apiClient.get(`/pois/uuid/${uuid}`);
-    return response.data;
-  } catch (error) {
-    throw new Error(`Lỗi khi lấy POI theo UUID: ${error.message}`);
-  }
-};
-
-// Lấy POI theo Floor ID
-export const getPoisByFloor = async (floorId) => {
-  try {
-    const response = await apiClient.get(`/pois/floor/${floorId}`);
-    return response.data;
-  } catch (error) {
-    throw new Error(`Lỗi khi lấy POI theo Floor: ${error.message}`);
+    throw new Error(`Lỗi khi lấy POI theo ID Name: ${error.message}`);
   }
 };
 
@@ -59,7 +39,7 @@ export const handleApiError = (error) => {
     const { status, data } = error.response;
     return {
       message: data.message || "Có lỗi xảy ra từ server",
-      status,
+      status: data.status || status,
       data: data.data || null,
     };
   } else if (error.request) {

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL cho backend API
-const BASE_URL = process.env.API_URL || "http://localhost:3000/api";
+const BASE_URL = "https://backend.airport.vm.dfm-europe.com/api";
 
 // Tạo axios instance với config mặc định
 const apiClient = axios.create({

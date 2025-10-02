@@ -6,8 +6,6 @@ export { default as apiClient } from "./config.js";
 export {
   getAllPois,
   searchPois,
-  getPoiById,
-  getPoiByUuid,
-  getPoisByFloor,
+  getPoiByIdName,
   handleApiError,
 } from "./poiApi.js";
