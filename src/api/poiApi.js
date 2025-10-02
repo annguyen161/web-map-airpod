@@ -28,7 +28,8 @@ export const getPoiByIdName = async (idName) => {
     const response = await apiClient.get(`/pois/id-name/${idName}`);
     return response.data;
   } catch (error) {
-    throw new Error(`Lỗi khi lấy POI theo ID Name: ${error.message}`);
+    // Giữ nguyên lỗi gốc để có thể truy cập error.response
+    throw error;
   }
 };
 

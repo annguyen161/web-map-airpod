@@ -673,7 +673,7 @@ export default function AreaInfo({
             )}
 
             {/* Hours */}
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mt: 2, mb: 2 }}>
               <Typography
                 variant="body2"
                 sx={{

@@ -45,7 +45,7 @@ export default function Scene3D({
 
     setIsLoading(true);
     setError(null);
-    setSelectedArea(areaName);
+    // Không set selectedArea ngay lập tức, chờ API response trước
 
     try {
       // Gọi API để lấy thông tin POI theo id_name
@@ -75,16 +75,41 @@ export default function Scene3D({
         };
 
         setAreaData(areaData);
+        setSelectedArea(areaName); // Chỉ set selectedArea khi có dữ liệu thành công
         console.log("POI data loaded:", areaData);
       } else {
         throw new Error("Không tìm thấy dữ liệu POI");
       }
     } catch (error) {
       console.error("Error loading POI data:", error);
+      console.log("Error response:", error.response);
+      console.log("Error status:", error.response?.status);
+
+      // Kiểm tra nếu là lỗi 404 (không tìm thấy POI), không hiển thị popup
+      if (error.response && error.response.status === 404) {
+        console.log("POI not found (404), not showing popup");
+        setSelectedArea(null);
+        setAreaData(null);
+        setError(null);
+        setIsLoading(false);
+        return; // Thoát khỏi hàm mà không hiển thị popup
+      }
+
       const errorInfo = handleApiError(error);
+
+      // Kiểm tra thêm trong errorInfo nếu có status 404
+      if (errorInfo.status === 404) {
+        console.log("POI not found (from errorInfo), not showing popup");
+        setSelectedArea(null);
+        setAreaData(null);
+        setError(null);
+        setIsLoading(false);
+        return; // Thoát khỏi hàm mà không hiển thị popup
+      }
+
       setError(errorInfo.message);
 
-      // Fallback: sử dụng dữ liệu mẫu nếu API lỗi
+      // Fallback: sử dụng dữ liệu mẫu nếu API lỗi (chỉ cho các lỗi khác 404)
       const fallbackData = {
         name: areaName,
         description: `Đây là khu vực ${areaName} trong bản đồ 3D. Khu vực này có thể được sử dụng cho các hoạt động khác nhau.`,
